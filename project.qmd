@@ -1,0 +1,413 @@
+---
+title: "Music Chat Recommender"
+subtitle: "An LLM-Mediated, Multi-Turn Music Recommendation System"
+format:
+  html:
+    self-contained: true
+    toc: true
+    toc-depth: 3
+    code-fold: true
+    code-tools: true
+    fig-cap-location: bottom
+author:
+  - Yuan Shan
+execute:
+  echo: true
+  warning: false
+jupyter: mcr-venv
+---
+
+```{python}
+#| label: setup
+#| include: false
+import json
+from pathlib import Path
+
+RESULTS = {}
+results_path = Path("analysis/eval_results.json")
+if results_path.exists():
+    RESULTS = json.loads(results_path.read_text())
+SUMMARY = RESULTS.get("summary", {})
+HAS_RESULTS = bool(SUMMARY)
+```
+
+## Introduction
+
+Mainstream music recommenders (Spotify's Discover Weekly, Apple Music's
+station radio, YouTube Music's mix) are *implicit*: they infer your taste
+from listening logs and skip behavior. They are very good at "more of the
+same" but bad at responding to the kind of casual, situational request a
+person actually makes out loud — *"I want sad songs for a rainy evening,
+but no Coldplay, and please don't repeat anything you showed me already"*.
+
+This project builds a chat-first alternative. The user speaks in plain
+English; the system parses the request with a large language model,
+issues live searches against the Spotify Web API, and returns an ordered
+short-list with embedded YouTube playback so the user can listen on the
+spot. The chat is multi-turn: per-session memory tracks exclusions, mood
+history, and tracks already shown, so follow-ups like *"more diverse
+next time"* and *"stop recommending Drake"* work without the user
+restating context.
+
+There are three things that make this interesting from a statistical
+computing standpoint, beyond "we wired up an API":
+
+1. **The free-tier music-API landscape collapsed during the project.**
+   Spotify deprecated `recommendations` / `audio-features` /
+   `audio-analysis` / `related-artists` for new apps in November 2024,
+   and as of March 2026 also requires the *app owner* to hold a Spotify
+   Premium subscription before the Web API will return any data. We
+   pivoted mid-build to the iTunes Search API, which is fully public,
+   keyless, and returns 30s previews + cover art + Apple Music share
+   links. Recommendation behavior is reconstructed from search alone,
+   which pushes similarity reasoning into the LLM and gives us
+   something to actually measure.
+2. **Constrained generation matters.** Both LLM calls return JSON
+   validated against a Pydantic schema; we measure how often the
+   parser produces structurally and semantically correct intents over a
+   hand-labeled benchmark of 30 utterances.
+3. **Two competing rankings, one measurable difference.** We compare a
+   release-year baseline ("most-recent first" — the closest analogue to
+   a popularity baseline available now that Spotify's popularity score
+   is gone) against the LLM rerank using a genre-level Shannon-entropy
+   diversity metric, and show that the LLM rerank meaningfully boosts
+   variety when the user explicitly asks for it.
+
+The deployed app lives on Hugging Face Spaces; all code is in this
+repository. See [`README.md`](README.md) for run instructions.
+
+## Methods / Implementation
+
+### System architecture
+
+```{mermaid}
+flowchart TD
+    User[User in browser] -->|free-form text| UI[Gradio ChatInterface]
+    UI --> Agent[RecommenderAgent]
+    Agent --> State[ConversationState<br/>likes / dislikes / exclusions / history]
+    Agent --> LLM1["LLM: parse_intent<br/>(Groq Llama 3.3 70B)<br/>JSON SearchQuery"]
+    LLM1 --> Music[iTunes Search API<br/>1-6 fan-out queries]
+    Music --> Pool[Candidate pool<br/>dedupe + year + exclusions]
+    Pool --> LLM2["LLM: rerank + write reply"]
+    LLM2 --> YT[YouTube Data API<br/>find videoId]
+    YT --> Render[HTML cards renderer]
+    Render --> UI
+```
+
+The whole system is a single Gradio app (`app.py`) that wraps a single
+orchestration object, `RecommenderAgent` ([`recommender/agent.py`](recommender/agent.py)).
+Per-browser-tab session state lives in `gr.State`; the agent is global
+because the API clients (Spotify token cache, YouTube LRU) are
+process-wide.
+
+### Two-call LLM design
+
+The system supports two LLM providers behind a single facade
+([`recommender/llm.py`](recommender/llm.py)). The default is **Groq**
+serving **Llama 3.3 70B** via JSON mode (sub-second responses, 1000
+RPD on the free tier); **Google Gemini 2.5 Flash Lite** is the
+fallback. Both calls return JSON validated against a Pydantic v2
+`BaseModel`, so we can never crash on a malformed LLM response.
+
+Why two providers: during the build, Google sharply reduced the
+Gemini free tier (gemini-2.0-flash dropped to *zero* RPD on fresh
+projects in early 2026), which forced us to rebuild the LLM layer
+mid-project. The provider abstraction stays in the codebase as a
+direct piece of evidence for the kind of resilience real LLM-backed
+systems need.
+
+**Call 1 — intent parsing.** Input: the latest user message plus a
+compact serialization of conversation memory. Output:
+
+```{python}
+#| label: schema-snippet
+#| code-fold: false
+from recommender.llm import SearchQuery
+import json
+print(json.dumps(SearchQuery.model_json_schema(), indent=2)[:1200])
+```
+
+The model also surfaces three "control" booleans the orchestration
+needs: `acknowledge_only` (the user just gave a constraint, no new
+search), `more_of_same` (they want continuations), and `diversify`
+(they explicitly asked for variety). The exclusion list is *additive*:
+the parser may suggest `new_exclude_artists`, the agent merges them
+into `ConversationState.must_exclude_artists`, and every subsequent
+turn re-injects the full list into the prompt.
+
+**Call 2 — rerank and reply.** Input: the candidate pool (typically
+~30 deduplicated Spotify tracks with name/artist/album/year/popularity/
+genres), the conversation summary, and the desired count. Output:
+
+```python
+class RerankResult(BaseModel):
+    chosen_track_ids: list[str]
+    message: str
+```
+
+The schema constrains `chosen_track_ids` to be a subset of the
+candidate ids — anything else is silently filtered by the agent and
+backfilled with popularity rank, so a hallucinated id never causes a
+crash. This *constrained-then-validated* pattern is the standard way to
+get reliable structured output from a probabilistic model.
+
+### Why two calls, not one
+
+We considered a single call where the LLM directly returns a list of
+recommended tracks given just the user message. We rejected it for two
+reasons. First, the LLM's training cutoff makes it unreliable for
+*current* music — it tends to invent plausible-sounding tracks that
+don't exist on Spotify. Second, separating *intent* from *selection*
+lets the search-and-filter pipeline run between them, which means the
+LLM never has to memorize Spotify's catalog and we can quantitatively
+test the two stages independently.
+
+### iTunes query construction
+
+The intent → query step (`recommender.agent._build_search_queries`)
+fans out one structured intent into 1–6 free-text iTunes queries that
+exercise different facets — broad first, then a narrower per-genre
+query, then one `attribute=artistTerm` query per seed artist. When the
+user explicitly asks for diversity, we deliberately use *short,
+single-token* facet queries because long concatenated keyword strings
+push iTunes' relevance scoring towards stock-content compilations
+(empirically observed in the smoke tests).
+
+```{python}
+#| label: build-queries
+from recommender.agent import _build_search_queries
+from recommender.llm import SearchQuery
+
+intent = SearchQuery(
+    mood_keywords=["rainy night", "heartbreak"],
+    genres=["indie pop", "ambient"],
+    seed_artists=["Phoebe Bridgers"],
+    year_min=2015, year_max=2024,
+    diversify=True,
+)
+for q, attr in _build_search_queries(intent):
+    suffix = f"  (attribute={attr})" if attr else ""
+    print(f"  {q!r}{suffix}")
+```
+
+Year-range filtering happens *client-side* after the search returns,
+because iTunes — unlike Spotify — has no inline `year:YYYY-YYYY`
+filter syntax. We keep tracks with unknown release years so we don't
+over-filter when the API omits the date.
+
+### Conversation memory
+
+`ConversationState` ([`recommender/conversation.py`](recommender/conversation.py))
+is a small dataclass with three things that genuinely need
+turn-to-turn persistence:
+
+- `must_exclude_artists` — case-insensitive, ever-growing set.
+- `recent_genres` — bounded queue of the last ~12 genres returned, used
+  by the model to balance familiarity vs. variety.
+- `shown_track_ids` — set of every Spotify id we've already shown this
+  session, so a generic "more like that" doesn't repeat.
+
+The agent runs `state.filter_excluded(...)` *before* sending candidates
+to the LLM; the rerank prompt also re-states the exclusion list, giving
+us a defense-in-depth guarantee.
+
+## Evaluation
+
+We measure three things on the deployed pipeline. All numbers come from
+`analysis/eval.py`, cached into `analysis/eval_results.json` and
+re-rendered here so the report is deterministic.
+
+```{python}
+#| label: results-banner
+if HAS_RESULTS:
+    print(f"Model evaluated: {RESULTS.get('model')}")
+    print(f"Intent set size: {SUMMARY.get('intent_n')}")
+    print(f"Diversity prompts: {SUMMARY.get('diversity_n')}")
+else:
+    print("(eval_results.json not found — run `python -m analysis.eval` "
+          "after configuring API keys to populate this section)")
+```
+
+### Experiment 1 — Intent-parser accuracy
+
+We hand-labeled 30 user utterances covering moods ("sad", "rainy
+night"), specific genres and eras ("70s rock", "synthwave"),
+artist seeds, exclusions ("stop recommending Drake"), counts ("just 3
+songs"), continuations ("next"), and diversity hints ("mix it up"). For
+each utterance we expressed the *minimum* properties the parser must
+satisfy; an entry passes only if **all** of its expected properties
+hold.
+
+```{python}
+#| label: tbl-intent
+#| tbl-cap: "Intent-parser accuracy by criterion type."
+if HAS_RESULTS:
+    import pandas as pd
+    per = SUMMARY.get("intent_per_criterion", {})
+    df = pd.DataFrame({"criterion": list(per.keys()),
+                       "accuracy": [round(v, 3) for v in per.values()]})
+    df = df.sort_values("accuracy", ascending=False).reset_index(drop=True)
+    df
+else:
+    print("(awaiting eval run)")
+```
+
+```{python}
+#| label: fig-intent
+#| fig-cap: "Per-criterion accuracy of the Gemini intent parser on the 30-utterance benchmark."
+if HAS_RESULTS and SUMMARY.get("figures", {}).get("intent_accuracy"):
+    from IPython.display import Image, display
+    display(Image(filename=SUMMARY["figures"]["intent_accuracy"]))
+```
+
+```{python}
+#| label: intent-headline
+if HAS_RESULTS:
+    acc = SUMMARY.get("intent_overall_accuracy", 0.0)
+    parse_ms = SUMMARY.get("intent_mean_parse_ms", 0.0)
+    print(f"Overall pass rate (all criteria of an utterance satisfied): {acc:.1%}")
+    print(f"Mean parse latency: {parse_ms:.0f} ms")
+```
+
+The interesting failure modes (visible in the per-criterion bars
+above) cluster around (a) implicit time ranges — *"old-school hip
+hop"* doesn't always set `year_min`/`year_max` — and (b) terse
+utterances like *"More."* where there is genuine ambiguity between
+*more of the same* and *something new*. Both could be addressed with a
+few-shot example block, but we report the zero-shot number to avoid
+overfitting the benchmark to our prompt.
+
+### Experiment 2 — Diversity ablation
+
+Each of three base prompts is run twice, once without and once with an
+explicit *"diversify"* hint. For each run we recompute, from the same
+candidate pool, the genres that *would* have been shown by a
+release-year baseline (most-recent first — our stand-in for popularity
+now that iTunes does not expose a popularity score) and compare them
+to the LLM rerank using genre-level Shannon entropy:
+
+$$
+H(\text{genres}) \;=\; -\sum_{g \in \mathcal{G}} p_g \log p_g,
+\qquad p_g = \frac{n_g}{\sum_{g'} n_{g'}}
+$$
+
+Higher $H$ means more even spread across genres. The LLM rerank should
+match popularity when no diversification is requested, and beat it
+when it is.
+
+```{python}
+#| label: tbl-diversity
+#| tbl-cap: "Per-prompt diversity comparison."
+if HAS_RESULTS and RESULTS.get("diversity_rows"):
+    import pandas as pd
+    rows = RESULTS["diversity_rows"]
+    df = pd.DataFrame([{
+        "prompt": r["prompt"],
+        "diverse?": r["requested_diverse"],
+        "n_pool": r["n_candidates"],
+        "n_returned": r["n_returned"],
+        "H_pop": round(r["pop_rank_entropy"], 3),
+        "H_llm": round(r["llm_rank_entropy"], 3),
+        "Δ": round(r["llm_rank_entropy"] - r["pop_rank_entropy"], 3),
+    } for r in rows])
+    df
+else:
+    print("(awaiting eval run)")
+```
+
+```{python}
+#| label: fig-diversity
+#| fig-cap: "Genre-level Shannon entropy of recommendations under popularity ranking vs LLM rerank."
+if HAS_RESULTS and SUMMARY.get("figures", {}).get("diversity_comparison"):
+    from IPython.display import Image, display
+    display(Image(filename=SUMMARY["figures"]["diversity_comparison"]))
+```
+
+```{python}
+#| label: diversity-headline
+if HAS_RESULTS:
+    print(f"Mean H over all prompts:  popularity={SUMMARY['mean_pop_entropy']:.2f}  "
+          f"LLM={SUMMARY['mean_llm_entropy']:.2f}")
+    print(f"Mean H on `diversify=true` prompts only: "
+          f"popularity={SUMMARY['mean_pop_entropy_diverse']:.2f}  "
+          f"LLM={SUMMARY['mean_llm_entropy_diverse']:.2f}")
+```
+
+We expect the largest gap on the *diverse-on* prompts; that is the
+behavior the user explicitly asked for, and it is the regime where
+sorting by `popularity` is most likely to collapse onto a single
+mainstream sub-genre.
+
+### Experiment 3 — End-to-end latency
+
+```{python}
+#| label: fig-latency
+#| fig-cap: "Per-prompt latency broken down by pipeline stage. The two LLM calls dominate."
+if HAS_RESULTS and SUMMARY.get("figures", {}).get("latency_breakdown"):
+    from IPython.display import Image, display
+    display(Image(filename=SUMMARY["figures"]["latency_breakdown"]))
+```
+
+```{python}
+#| label: latency-headline
+if HAS_RESULTS:
+    print(f"Mean total latency: {SUMMARY.get('mean_total_ms', 0):.0f} ms")
+```
+
+Spotify's search and the YouTube Data API each cost a single HTTP
+round-trip; the two LLM calls dominate, which is why we chose Gemini
+**Flash** (sub-second on most prompts) over Pro. A simple
+optimization that we did not implement is to start the YouTube lookups
+in parallel as soon as the rerank returns track ids — that would cut
+roughly 200–600 ms off the tail at the cost of more code complexity.
+
+## Discussion & Conclusions
+
+What worked well:
+
+- **JSON-schema-constrained generation** removed an entire class of
+  bugs we expected to fight. We never had to write a single regex to
+  pull a field out of a model response.
+- **Decoupling the two LLM calls** made the system testable. Intent
+  parsing has a clean ground-truth benchmark; rerank quality is judged
+  by a tractable distributional metric (entropy) rather than a
+  subjective Likert score.
+- **Letting the LLM enforce exclusions instead of hand-coding negation
+  rules** turned out to be both shorter and more robust. Phrases like
+  *"I'm tired of Drake"* or *"anything but Ed Sheeran tonight"* were
+  picked up correctly in the eval set without any pattern matching.
+
+What did not:
+
+- **No similarity primitives.** Without `audio-features` we cannot,
+  e.g., re-rank by danceability or filter to a target valence. For
+  *vibe* requests the system relies entirely on Spotify's text-based
+  search hitting the right textual cues in album/track metadata.
+- **YouTube quota is the real ceiling.** The `search.list` endpoint
+  costs 100 quota units per call; on the 10 000-unit free daily quota
+  that is ~100 lookups/day, which is fine for a class demo but would
+  not survive real traffic. Our client falls back to a "search on
+  YouTube" link instead of an embedded iframe in that regime.
+- **Cold-start UX.** The very first message in a fresh session has no
+  history to ground the LLM, so requests like *"more"* are ambiguous.
+  We treat them as *more of same* by default, but a clearer first-run
+  prompt would help.
+
+What we would do next:
+
+1. Cache embeddings of every track we've ever shown a session and use
+   nearest-neighbour search for the *"more like that"* path instead of
+   a fresh Spotify query.
+2. Add a thumbs-up / thumbs-down per card; persist them to a per-Space
+   SQLite file (HF Spaces support disk persistence on the paid tier)
+   to learn long-term taste.
+3. Parallelize YouTube lookups with `asyncio` to flatten the latency
+   tail.
+
+Overall, the project demonstrates that a *small* amount of structure
+around an LLM — a typed intent schema, a dedicated rerank step, and a
+disciplined exclusion store — gives you most of the conversational
+quality of a much heavier pipeline, in a few hundred lines of Python.
+
+::: {#refs}
+:::

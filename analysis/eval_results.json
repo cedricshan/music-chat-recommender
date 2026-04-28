@@ -1,0 +1,1012 @@
+{
+  "summary": {
+    "intent_n": 30,
+    "intent_overall_accuracy": 1.0,
+    "intent_per_criterion": {
+      "mood_keywords_nonempty": 1.0,
+      "acknowledge_only": 1.0,
+      "genres_contains_any": 1.0,
+      "count": 1.0,
+      "year_min_lte": 1.0,
+      "year_max_gte": 1.0,
+      "seed_artists_contains_any": 1.0,
+      "new_exclude_artists_contains_any": 1.0,
+      "diversify": 1.0,
+      "more_of_same": 1.0
+    },
+    "intent_mean_parse_ms": 4911.3,
+    "diversity_n": 6,
+    "mean_pop_entropy": 0.718,
+    "mean_llm_entropy": 0.795,
+    "mean_pop_entropy_diverse": 0.732,
+    "mean_llm_entropy_diverse": 1.176,
+    "mean_total_ms": 12373.5,
+    "figures": {
+      "intent_accuracy": "analysis/figures/intent_accuracy.png",
+      "diversity_comparison": "analysis/figures/diversity_comparison.png",
+      "latency_breakdown": "analysis/figures/latency_breakdown.png"
+    }
+  },
+  "intent_rows": [
+    {
+      "utterance": "Recommend me some sad songs.",
+      "expected": {
+        "mood_keywords_nonempty": true,
+        "acknowledge_only": false
+      },
+      "predicted": {
+        "mood_keywords": [
+          "heartbreak",
+          "sadness",
+          "melancholy"
+        ],
+        "genres": [
+          "indie folk",
+          "acoustic"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User requested sad songs"
+      },
+      "passed_criteria": {
+        "mood_keywords_nonempty": true,
+        "acknowledge_only": true
+      },
+      "overall_pass": true,
+      "parse_ms": 510.14674999169074
+    },
+    {
+      "utterance": "Songs for a rainy nighttime drive.",
+      "expected": {
+        "mood_keywords_nonempty": true
+      },
+      "predicted": {
+        "mood_keywords": [
+          "rainy night",
+          "driving"
+        ],
+        "genres": [
+          "indie folk",
+          "ambient"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User wants songs for a rainy nighttime drive."
+      },
+      "passed_criteria": {
+        "mood_keywords_nonempty": true
+      },
+      "overall_pass": true,
+      "parse_ms": 338.2380419934634
+    },
+    {
+      "utterance": "Five upbeat indie tracks please.",
+      "expected": {
+        "genres_contains_any": [
+          "indie",
+          "indie pop",
+          "indie rock"
+        ],
+        "count": 5
+      },
+      "predicted": {
+        "mood_keywords": [
+          "upbeat",
+          "energetic"
+        ],
+        "genres": [
+          "indie"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User requested 5 upbeat indie tracks"
+      },
+      "passed_criteria": {
+        "genres_contains_any": true,
+        "count": true
+      },
+      "overall_pass": true,
+      "parse_ms": 438.29529100912623
+    },
+    {
+      "utterance": "I want music that fits a focused study session, no lyrics.",
+      "expected": {
+        "mood_keywords_nonempty": true
+      },
+      "predicted": {
+        "mood_keywords": [
+          "lo-fi study",
+          "concentrate"
+        ],
+        "genres": [
+          "instrumental",
+          "electronic"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User wants instrumental music for a focused study session."
+      },
+      "passed_criteria": {
+        "mood_keywords_nonempty": true
+      },
+      "overall_pass": true,
+      "parse_ms": 370.4335830116179
+    },
+    {
+      "utterance": "Give me feel-good summer songs.",
+      "expected": {
+        "mood_keywords_nonempty": true
+      },
+      "predicted": {
+        "mood_keywords": [
+          "summer vibes",
+          "feel-good"
+        ],
+        "genres": [
+          "indie pop",
+          "tropical house"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User requested feel-good summer songs."
+      },
+      "passed_criteria": {
+        "mood_keywords_nonempty": true
+      },
+      "overall_pass": true,
+      "parse_ms": 369.4533749949187
+    },
+    {
+      "utterance": "Slow, melancholy piano ballads.",
+      "expected": {
+        "mood_keywords_nonempty": true
+      },
+      "predicted": {
+        "mood_keywords": [
+          "slow night",
+          "heartbreak",
+          "piano ballad"
+        ],
+        "genres": [
+          "piano"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User is looking for slow and melancholy piano ballads."
+      },
+      "passed_criteria": {
+        "mood_keywords_nonempty": true
+      },
+      "overall_pass": true,
+      "parse_ms": 11496.92962502013
+    },
+    {
+      "utterance": "Classic 70s rock anthems.",
+      "expected": {
+        "year_min_lte": 1979,
+        "year_max_gte": 1970
+      },
+      "predicted": {
+        "mood_keywords": [
+          "classic rock",
+          "anthemic"
+        ],
+        "genres": [
+          "classic rock"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": 1970,
+        "year_max": 1979,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User is looking for classic 70s rock anthems."
+      },
+      "passed_criteria": {
+        "year_min_lte": true,
+        "year_max_gte": true
+      },
+      "overall_pass": true,
+      "parse_ms": 15552.397833002033
+    },
+    {
+      "utterance": "90s grunge.",
+      "expected": {
+        "year_min_lte": 1995,
+        "year_max_gte": 1990
+      },
+      "predicted": {
+        "mood_keywords": [],
+        "genres": [
+          "grunge"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": 1990,
+        "year_max": 1999,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User requested 90s grunge music"
+      },
+      "passed_criteria": {
+        "year_min_lte": true,
+        "year_max_gte": true
+      },
+      "overall_pass": true,
+      "parse_ms": 4574.390957975993
+    },
+    {
+      "utterance": "Synthwave from the 2010s.",
+      "expected": {
+        "genres_contains_any": [
+          "synthwave",
+          "synth-pop",
+          "synth pop"
+        ]
+      },
+      "predicted": {
+        "mood_keywords": [],
+        "genres": [
+          "synthwave"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": 2010,
+        "year_max": 2019,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User requested synthwave music from the 2010s."
+      },
+      "passed_criteria": {
+        "genres_contains_any": true
+      },
+      "overall_pass": true,
+      "parse_ms": 5762.3563339875545
+    },
+    {
+      "utterance": "Old-school hip hop.",
+      "expected": {
+        "genres_contains_any": [
+          "hip hop",
+          "rap"
+        ]
+      },
+      "predicted": {
+        "mood_keywords": [
+          "old school",
+          "classic beats"
+        ],
+        "genres": [
+          "hip hop"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": 1980,
+        "year_max": 2000,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User requested old-school hip hop music."
+      },
+      "passed_criteria": {
+        "genres_contains_any": true
+      },
+      "overall_pass": true,
+      "parse_ms": 5478.350582998246
+    },
+    {
+      "utterance": "Anything similar to Bon Iver but more electronic.",
+      "expected": {
+        "seed_artists_contains_any": [
+          "bon iver"
+        ]
+      },
+      "predicted": {
+        "mood_keywords": [
+          "electronic folk",
+          "indie electronic"
+        ],
+        "genres": [
+          "indie electronic",
+          "synthwave"
+        ],
+        "seed_artists": [
+          "Bon Iver"
+        ],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User wants electronic music similar to Bon Iver"
+      },
+      "passed_criteria": {
+        "seed_artists_contains_any": true
+      },
+      "overall_pass": true,
+      "parse_ms": 4597.530958009884
+    },
+    {
+      "utterance": "Stuff that sounds like Phoebe Bridgers and Big Thief.",
+      "expected": {
+        "seed_artists_contains_any": [
+          "phoebe bridgers",
+          "big thief"
+        ]
+      },
+      "predicted": {
+        "mood_keywords": [],
+        "genres": [
+          "indie folk"
+        ],
+        "seed_artists": [
+          "Phoebe Bridgers",
+          "Big Thief"
+        ],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "Find music similar to Phoebe Bridgers and Big Thief"
+      },
+      "passed_criteria": {
+        "seed_artists_contains_any": true
+      },
+      "overall_pass": true,
+      "parse_ms": 5455.213250010274
+    },
+    {
+      "utterance": "Stop recommending Taylor Swift, please.",
+      "expected": {
+        "new_exclude_artists_contains_any": [
+          "taylor swift"
+        ],
+        "acknowledge_only": true
+      },
+      "predicted": {
+        "mood_keywords": [],
+        "genres": [],
+        "seed_artists": [],
+        "new_exclude_artists": [
+          "Taylor Swift"
+        ],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": true,
+        "assistant_intent_summary": "User wants to stop recommendations of Taylor Swift"
+      },
+      "passed_criteria": {
+        "new_exclude_artists_contains_any": true,
+        "acknowledge_only": true
+      },
+      "overall_pass": true,
+      "parse_ms": 5543.648708000546
+    },
+    {
+      "utterance": "No more Coldplay.",
+      "expected": {
+        "new_exclude_artists_contains_any": [
+          "coldplay"
+        ],
+        "acknowledge_only": true
+      },
+      "predicted": {
+        "mood_keywords": [],
+        "genres": [],
+        "seed_artists": [],
+        "new_exclude_artists": [
+          "Coldplay"
+        ],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": true,
+        "assistant_intent_summary": "User wants to exclude Coldplay from recommendations."
+      },
+      "passed_criteria": {
+        "new_exclude_artists_contains_any": true,
+        "acknowledge_only": true
+      },
+      "overall_pass": true,
+      "parse_ms": 4391.946874995483
+    },
+    {
+      "utterance": "I'm tired of Drake.",
+      "expected": {
+        "new_exclude_artists_contains_any": [
+          "drake"
+        ],
+        "acknowledge_only": true
+      },
+      "predicted": {
+        "mood_keywords": [],
+        "genres": [],
+        "seed_artists": [],
+        "new_exclude_artists": [
+          "Drake"
+        ],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": true,
+        "assistant_intent_summary": "User wants to exclude Drake from recommendations"
+      },
+      "passed_criteria": {
+        "new_exclude_artists_contains_any": true,
+        "acknowledge_only": true
+      },
+      "overall_pass": true,
+      "parse_ms": 5403.414125001291
+    },
+    {
+      "utterance": "Anything but Ed Sheeran tonight.",
+      "expected": {
+        "new_exclude_artists_contains_any": [
+          "ed sheeran"
+        ]
+      },
+      "predicted": {
+        "mood_keywords": [],
+        "genres": [],
+        "seed_artists": [],
+        "new_exclude_artists": [
+          "Ed Sheeran"
+        ],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": true,
+        "assistant_intent_summary": "User wants to exclude Ed Sheeran from recommendations"
+      },
+      "passed_criteria": {
+        "new_exclude_artists_contains_any": true
+      },
+      "overall_pass": true,
+      "parse_ms": 5399.917208007537
+    },
+    {
+      "utterance": "Mix it up \u2014 give me something more diverse next time.",
+      "expected": {
+        "diversify": true
+      },
+      "predicted": {
+        "mood_keywords": [
+          "energetic vibes",
+          "relaxing atmosphere",
+          "upbeat melodies"
+        ],
+        "genres": [
+          "indie pop",
+          "electronic",
+          "hip hop"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": true,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User wants a more diverse music selection."
+      },
+      "passed_criteria": {
+        "diversify": true
+      },
+      "overall_pass": true,
+      "parse_ms": 4490.540416998556
+    },
+    {
+      "utterance": "Surprise me with variety.",
+      "expected": {
+        "diversify": true
+      },
+      "predicted": {
+        "mood_keywords": [
+          "energizing beats",
+          "relaxing vibes",
+          "upbeat melodies"
+        ],
+        "genres": [
+          "indie pop",
+          "electronic",
+          "hip hop"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": true,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User requested a varied music selection."
+      },
+      "passed_criteria": {
+        "diversify": true
+      },
+      "overall_pass": true,
+      "parse_ms": 5537.807250017067
+    },
+    {
+      "utterance": "Different artists this time.",
+      "expected": {
+        "diversify": true
+      },
+      "predicted": {
+        "mood_keywords": [],
+        "genres": [],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": true,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User wants different artists this time."
+      },
+      "passed_criteria": {
+        "diversify": true
+      },
+      "overall_pass": true,
+      "parse_ms": 5378.000124997925
+    },
+    {
+      "utterance": "Show me more like that.",
+      "expected": {
+        "more_of_same": true
+      },
+      "predicted": {
+        "mood_keywords": [],
+        "genres": [],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": true,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User asked to show more of the same music"
+      },
+      "passed_criteria": {
+        "more_of_same": true
+      },
+      "overall_pass": true,
+      "parse_ms": 4430.320709012449
+    },
+    {
+      "utterance": "Next.",
+      "expected": {
+        "more_of_same": true
+      },
+      "predicted": {
+        "mood_keywords": [],
+        "genres": [],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": true,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User asked to show more of the same"
+      },
+      "passed_criteria": {
+        "more_of_same": true
+      },
+      "overall_pass": true,
+      "parse_ms": 5484.4503329950385
+    },
+    {
+      "utterance": "Recommend me 8 chill electronic tracks.",
+      "expected": {
+        "count": 8
+      },
+      "predicted": {
+        "mood_keywords": [
+          "relaxing",
+          "electronic vibes"
+        ],
+        "genres": [
+          "electronic",
+          "ambient"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 8,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User requested 8 chill electronic tracks."
+      },
+      "passed_criteria": {
+        "count": true
+      },
+      "overall_pass": true,
+      "parse_ms": 14479.683749988908
+    },
+    {
+      "utterance": "Just give me 3 songs.",
+      "expected": {
+        "count": 3
+      },
+      "predicted": {
+        "mood_keywords": [],
+        "genres": [],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 3,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User requested 3 songs"
+      },
+      "passed_criteria": {
+        "count": true
+      },
+      "overall_pass": true,
+      "parse_ms": 368.302417016821
+    },
+    {
+      "utterance": "Indie folk from 2018-2022, no Mumford & Sons please.",
+      "expected": {
+        "genres_contains_any": [
+          "indie folk",
+          "folk",
+          "indie"
+        ],
+        "year_min_lte": 2018,
+        "year_max_gte": 2022,
+        "new_exclude_artists_contains_any": [
+          "mumford & sons",
+          "mumford and sons"
+        ]
+      },
+      "predicted": {
+        "mood_keywords": [],
+        "genres": [
+          "indie folk"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [
+          "Mumford & Sons"
+        ],
+        "year_min": 2018,
+        "year_max": 2022,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User requested indie folk music from 2018-2022 excluding Mumford & Sons"
+      },
+      "passed_criteria": {
+        "genres_contains_any": true,
+        "year_min_lte": true,
+        "year_max_gte": true,
+        "new_exclude_artists_contains_any": true
+      },
+      "overall_pass": true,
+      "parse_ms": 402.87083300063387
+    },
+    {
+      "utterance": "Five jazz tracks for late-night reading.",
+      "expected": {
+        "genres_contains_any": [
+          "jazz"
+        ],
+        "count": 5
+      },
+      "predicted": {
+        "mood_keywords": [
+          "late-night reading"
+        ],
+        "genres": [
+          "jazz"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User requested 5 jazz tracks for late-night reading."
+      },
+      "passed_criteria": {
+        "genres_contains_any": true,
+        "count": true
+      },
+      "overall_pass": true,
+      "parse_ms": 5459.4625839963555
+    },
+    {
+      "utterance": "Songs that fit a long road trip through California, more diverse.",
+      "expected": {
+        "diversify": true,
+        "mood_keywords_nonempty": true
+      },
+      "predicted": {
+        "mood_keywords": [
+          "road trip",
+          "california vibes",
+          "driving energy"
+        ],
+        "genres": [
+          "indie rock",
+          "folk pop",
+          "electronic"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": true,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User wants diverse songs for a California road trip"
+      },
+      "passed_criteria": {
+        "diversify": true,
+        "mood_keywords_nonempty": true
+      },
+      "overall_pass": true,
+      "parse_ms": 4599.057083018124
+    },
+    {
+      "utterance": "More.",
+      "expected": {
+        "more_of_same": true
+      },
+      "predicted": {
+        "mood_keywords": [],
+        "genres": [],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": true,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User asked to show more"
+      },
+      "passed_criteria": {
+        "more_of_same": true
+      },
+      "overall_pass": true,
+      "parse_ms": 5493.657709012041
+    },
+    {
+      "utterance": "Something fun.",
+      "expected": {
+        "mood_keywords_nonempty": true
+      },
+      "predicted": {
+        "mood_keywords": [
+          "upbeat",
+          "party"
+        ],
+        "genres": [
+          "pop",
+          "dance"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User asked for fun music"
+      },
+      "passed_criteria": {
+        "mood_keywords_nonempty": true
+      },
+      "overall_pass": true,
+      "parse_ms": 14603.432083997177
+    },
+    {
+      "utterance": "Energy.",
+      "expected": {
+        "mood_keywords_nonempty": true
+      },
+      "predicted": {
+        "mood_keywords": [
+          "high energy"
+        ],
+        "genres": [],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User is looking for energetic music"
+      },
+      "passed_criteria": {
+        "mood_keywords_nonempty": true
+      },
+      "overall_pass": true,
+      "parse_ms": 477.2251659887843
+    },
+    {
+      "utterance": "Lo-fi background music.",
+      "expected": {
+        "mood_keywords_nonempty": true
+      },
+      "predicted": {
+        "mood_keywords": [
+          "lo-fi",
+          "background"
+        ],
+        "genres": [
+          "lo-fi"
+        ],
+        "seed_artists": [],
+        "new_exclude_artists": [],
+        "year_min": null,
+        "year_max": null,
+        "count": 5,
+        "diversify": false,
+        "more_of_same": false,
+        "acknowledge_only": false,
+        "assistant_intent_summary": "User requested lo-fi background music."
+      },
+      "passed_criteria": {
+        "mood_keywords_nonempty": true
+      },
+      "overall_pass": true,
+      "parse_ms": 452.4012909969315
+    }
+  ],
+  "diversity_rows": [
+    {
+      "prompt": "Recommend 6 sad nighttime songs.",
+      "requested_diverse": false,
+      "n_candidates": 30,
+      "n_returned": 6,
+      "pop_rank_entropy": -0.0,
+      "llm_rank_entropy": -0.0,
+      "total_ms": 15001.4,
+      "parse_ms": 4423.8,
+      "search_ms": 1254.8,
+      "rerank_ms": 6584.3,
+      "youtube_ms": 2738.3
+    },
+    {
+      "prompt": "Recommend 6 sad nighttime songs, mix it up across genres.",
+      "requested_diverse": true,
+      "n_candidates": 30,
+      "n_returned": 6,
+      "pop_rank_entropy": -0.0,
+      "llm_rank_entropy": 1.3296613488547582,
+      "total_ms": 10785.3,
+      "parse_ms": 1605.8,
+      "search_ms": 2925.1,
+      "rerank_ms": 4662.2,
+      "youtube_ms": 1592.1
+    },
+    {
+      "prompt": "6 upbeat indie tracks from 2018-2022.",
+      "requested_diverse": false,
+      "n_candidates": 11,
+      "n_returned": 6,
+      "pop_rank_entropy": 0.8675632284814612,
+      "llm_rank_entropy": 1.242453324894,
+      "total_ms": 13629.7,
+      "parse_ms": 9586.0,
+      "search_ms": 1091.3,
+      "rerank_ms": 495.4,
+      "youtube_ms": 2457.0
+    },
+    {
+      "prompt": "6 upbeat indie tracks from 2018-2022, very diverse.",
+      "requested_diverse": true,
+      "n_candidates": 30,
+      "n_returned": 6,
+      "pop_rank_entropy": 1.3296613488547582,
+      "llm_rank_entropy": 1.3296613488547582,
+      "total_ms": 15463.9,
+      "parse_ms": 529.3,
+      "search_ms": 3559.4,
+      "rerank_ms": 8616.3,
+      "youtube_ms": 2758.8
+    },
+    {
+      "prompt": "6 chill electronic tracks for studying.",
+      "requested_diverse": false,
+      "n_candidates": 30,
+      "n_returned": 6,
+      "pop_rank_entropy": 1.242453324894,
+      "llm_rank_entropy": -0.0,
+      "total_ms": 6321.5,
+      "parse_ms": 596.9,
+      "search_ms": 2796.3,
+      "rerank_ms": 595.3,
+      "youtube_ms": 2332.9
+    },
+    {
+      "prompt": "6 chill electronic tracks for studying, surprise me with variety.",
+      "requested_diverse": true,
+      "n_candidates": 30,
+      "n_returned": 6,
+      "pop_rank_entropy": 0.8675632284814612,
+      "llm_rank_entropy": 0.8675632284814612,
+      "total_ms": 13039.2,
+      "parse_ms": 524.4,
+      "search_ms": 2776.1,
+      "rerank_ms": 6978.9,
+      "youtube_ms": 2759.3
+    }
+  ],
+  "model": "gemini-2.5-flash"
+}

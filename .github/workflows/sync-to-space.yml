@@ -1,0 +1,41 @@
+name: Sync to Hugging Face Space
+
+# Mirrors `main` to the configured Hugging Face Space on every push.
+#
+# Required repository secrets:
+#   HF_TOKEN   - a Hugging Face write token
+#   HF_SPACE   - "<username>/<space-name>", e.g. "cedric/music-chat-recommender"
+#
+# The Space's runtime secrets (GEMINI_API_KEY, SPOTIFY_CLIENT_ID,
+# SPOTIFY_CLIENT_SECRET, YOUTUBE_API_KEY) are managed in the Space UI,
+# not here -- this workflow only ships the code.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Push to HF Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE: ${{ secrets.HF_SPACE }}
+        run: |
+          set -euo pipefail
+          if [ -z "${HF_TOKEN}" ] || [ -z "${HF_SPACE}" ]; then
+            echo "HF_TOKEN or HF_SPACE not configured; skipping."
+            exit 0
+          fi
+          git config user.email "actions@users.noreply.huggingface.co"
+          git config user.name  "github-actions"
+          git remote add space "https://USER:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}"
+          git push --force space HEAD:main

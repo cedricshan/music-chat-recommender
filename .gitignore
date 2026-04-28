@@ -1,0 +1,23 @@
+.Rproj.user
+.Rhistory
+.Rdata
+.httr-oauth
+.DS_Store
+.quarto
+.RData
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Project
+.env
+analysis/cache/
+analysis/eval.log
+project_files/
+project.html

@@ -1,0 +1,32 @@
+[project]
+name = "music-chat-recommender"
+version = "0.1.0"
+description = "Multi-turn, text-driven music recommendation chatbot (Gemini + Spotify + YouTube + Gradio)."
+requires-python = ">=3.10"
+dependencies = [
+    "gradio>=5.0.0",
+    "google-genai>=0.3.0",
+    "groq>=0.11.0",
+    "requests>=2.31.0",
+    "pydantic>=2.6.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+analysis = [
+    "matplotlib>=3.8.0",
+    "pandas>=2.2.0",
+    "numpy>=1.26.0",
+    "ipykernel>=6.29.0",
+    "jupyter>=1.1.0",
+]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["recommender*"]
