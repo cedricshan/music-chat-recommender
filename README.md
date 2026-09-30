@@ -10,7 +10,7 @@
 
 A multi-turn LLM chatbot for music recommendation. You type free-form English
 ("recommend me sad nighttime songs", "no more Taylor Swift",
-"mix it up next time") and the bot uses an LLM (Groq Llama 3.3 70B,
+"mix it up next time") and the bot uses an LLM (Groq gpt-oss-120b,
 with Gemini 2.5 Flash Lite as a fallback) to parse your intent, the
 iTunes Search API to fetch candidates, and the YouTube Data API to
 embed playable videos in the chat. Per-session memory tracks exclusions,

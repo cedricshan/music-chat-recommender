@@ -3,10 +3,12 @@
 Supports two providers behind one interface:
 
 * **Groq** (default when `GROQ_API_KEY` is set). Free tier ~1000 RPD per
-  model and very fast (sub-second). Uses Llama 3.3 70B with JSON mode.
-* **Gemini** (fallback when only `GEMINI_API_KEY` is set). Free tier on
-  fresh projects is only ~20 RPD as of April 2026, which is too tight
-  for evaluation but fine for a low-traffic demo.
+  model and very fast (sub-second). Uses gpt-oss-120b with JSON mode
+  (Llama 3.3 70B until Groq decommissioned it on 2026-08-16).
+* **Gemini** (fallback when only `GEMINI_API_KEY` is set, and the backup
+  provider at call time when both keys are set). Free tier on fresh
+  projects is only ~20 RPD as of April 2026, which is too tight for
+  evaluation but fine for a low-traffic demo.
 
 Both calls return JSON validated against a Pydantic schema, so the
 agent never has to regex-extract fields from prose.
@@ -93,7 +95,7 @@ class _GroqProvider(_Provider):
 
     name = "groq"
 
-    DEFAULT_MODEL = "llama-3.3-70b-versatile"
+    DEFAULT_MODEL = "openai/gpt-oss-120b"  # llama-3.3-70b-versatile was decommissioned by Groq on 2026-08-16
 
     def __init__(self, api_key: str, model: str | None = None) -> None:
         from groq import Groq  # local import to keep package import light
@@ -224,8 +226,12 @@ class GeminiLLM:
       * Otherwise, fall back to Gemini.
       * `LLM_PROVIDER` env var ("groq" / "gemini") forces a specific choice.
 
+    When both keys are set, Gemini also acts as a call-time backup: if the
+    Groq call fails (outage, decommissioned model, exhausted quota), the same
+    request is retried once on Gemini.
+
     The attribute name `model` reports whichever model is in use, prefixed
-    with the provider for clarity ("groq:llama-3.3-70b-versatile").
+    with the provider for clarity ("groq:openai/gpt-oss-120b").
     """
 
     def __init__(
@@ -253,7 +259,33 @@ class GeminiLLM:
             self._provider = _GeminiProvider(api_key=gemini_key, model=model)
         else:
             raise LLMError(f"Unknown LLM_PROVIDER {chosen!r}")
+        self._fallback: _Provider | None = None
+        if chosen == "groq" and gemini_key:
+            self._fallback = _GeminiProvider(api_key=gemini_key)
         self.timings = LLMTimings()
+
+    def _generate_json(
+        self,
+        system_prompt: str,
+        user_payload: str,
+        schema: type[BaseModel],
+        temperature: float,
+    ) -> dict:
+        try:
+            return self._provider.generate_json(
+                system_prompt, user_payload, schema, temperature
+            )
+        except LLMError as primary_err:
+            if self._fallback is None:
+                raise
+            try:
+                return self._fallback.generate_json(
+                    system_prompt, user_payload, schema, temperature
+                )
+            except LLMError as fallback_err:
+                raise LLMError(
+                    f"{primary_err}; fallback also failed: {fallback_err}"
+                ) from fallback_err
 
     @property
     def model(self) -> str:
@@ -276,7 +308,7 @@ class GeminiLLM:
         )
         t0 = time.perf_counter()
         try:
-            raw = self._provider.generate_json(
+            raw = self._generate_json(
                 INTENT_SYSTEM_PROMPT, payload, SearchQuery, temperature=0.2
             )
             obj = SearchQuery.model_validate(raw)
@@ -305,7 +337,7 @@ class GeminiLLM:
         )
         t0 = time.perf_counter()
         try:
-            raw = self._provider.generate_json(
+            raw = self._generate_json(
                 RERANK_SYSTEM_PROMPT, payload, RerankResult, temperature=0.4
             )
             obj = RerankResult.model_validate(raw)

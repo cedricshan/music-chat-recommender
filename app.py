@@ -130,7 +130,7 @@ def _hero_html() -> str:
           millions of tracks, listen to your follow-ups, and play them back here.
         </p>
         <div class="mcr-hero-pills">
-          <span class="mcr-pill">🧠 Groq Llama 3.3 70B</span>
+          <span class="mcr-pill">🧠 Groq gpt-oss-120b</span>
           <span class="mcr-pill">🎵 iTunes Search</span>
           <span class="mcr-pill">▶ YouTube Embed</span>
           <span class="mcr-pill">🔁 Multi-turn memory</span>
@@ -147,7 +147,7 @@ def _about_html() -> str:
       <div class="mcr-about-body">
         <ol>
           <li><b>Intent parsing.</b> Your message + the conversation history go to a large
-          language model (Groq's Llama 3.3 70B by default), which returns a
+          language model (Groq's gpt-oss-120b by default), which returns a
           structured <code>SearchQuery</code> JSON: moods, genres, seed artists,
           year range, exclusions, "diversify" hint, etc.</li>
           <li><b>Catalog search.</b> The structured query is fanned out into 1-6
